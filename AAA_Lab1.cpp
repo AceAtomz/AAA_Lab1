@@ -45,6 +45,28 @@ int main() {
             grid[1][blank-3] = temp1;
             grid[2][blank-3] = "#";
         }
+    }else if(inputString=="LEFT" && blank!=0 && blank!=3 && blank!=6){
+        string temp1;
+        if(blank==1 || blank==4 || blank==7){
+            temp1 = grid[(blank-1)/3][0];
+            grid[(blank-1)/3][1] = temp1;
+            grid[(blank-1)/3][0] = "#";
+        }else{
+            temp1 = grid[(blank-2)/3][1];
+            grid[(blank-2)/3][2] = temp1;
+            grid[(blank-2)/3][1] = "#";
+        }
+    }else if(inputString=="RIGHT" && blank!=2 && blank!=5 && blank!=8){
+        string temp1;
+        if(blank==1 || blank==4 || blank==7){
+            temp1 = grid[(blank-1)/3][2];
+            grid[(blank-1)/3][1] = temp1;
+            grid[(blank-1)/3][2] = "#";
+        }else{
+            temp1 = grid[(blank-2)/3][1];
+            grid[(blank-2)/3][0] = temp1;
+            grid[(blank-2)/3][1] = "#";
+        }
     }
 
 
