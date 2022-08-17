@@ -34,7 +34,7 @@ int main() {
             grid[1][blank-3] = temp1;
             grid[0][blank-3] = "#";
         }
-    }else if(inputString=="DOWN" && blank<5){
+    }else if(inputString=="DOWN" && blank<6){
         string temp1;
         if(blank<2){
             temp1 = grid[1][blank];
