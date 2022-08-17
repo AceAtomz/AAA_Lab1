@@ -11,7 +11,11 @@ int main() {
     for(int i=0;i<3;i++){
         for(int j=0;j<3;j++){
             grid[i][j] = inputGrid[counter];
-            outputGrid += grid[i][j] + " ";
+            outputGrid += grid[i][j];
+            if(j!=2){
+                outputGrid += " ";
+            }
+
             counter++;
         }
         outputGrid += "\n";
