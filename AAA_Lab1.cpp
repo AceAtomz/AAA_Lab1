@@ -89,11 +89,19 @@ void printPath(Node* root)
 {
     if (root == NULL)
         return;
+
+    if (root->parent != NULL){
+        if(root->x<root->parent->x){
+            totalMoves+=5;
+        }else{
+            totalMoves++;
+        }
+    }
+
     printPath(root->parent);
     printMatrix(root->mat);
 
     printf("\n");
-    totalMoves++;
 }
 
 // Comparison object to be used to order the heap
@@ -178,7 +186,7 @@ int main() {
                 initial[i][j] = 0;
                 x = i;
                 y = j;
-                cout << x << " " << y << endl;
+                //cout << x << " " << y << endl;
             }else{
                 int ia = initialGrid[tempCount] - '0'; //convert char to int
                 initial[i][j] = ia;
@@ -194,7 +202,7 @@ int main() {
     }
 
     solve(initial, x, y, goal);
-    cout << totalMoves -1 << endl;
+    cout << totalMoves << endl;
     return 0;
 }
 
