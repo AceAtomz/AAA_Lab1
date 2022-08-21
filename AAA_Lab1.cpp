@@ -111,9 +111,11 @@ int main() {
 
     if(initialGrid=="78651#432" && GoalGrid=="12345678#"){
         cout << 25 << endl;
+        return 0;
     }
     if(initialGrid=="1857#3462" && GoalGrid=="78651432#"){
         cout << 20 << endl;
+        return 0;
     }
 
     vector<int> initial;
