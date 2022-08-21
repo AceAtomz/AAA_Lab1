@@ -99,9 +99,8 @@ void printPath(Node* root)
     }
 
     printPath(root->parent);
-    printMatrix(root->mat);
-
-    printf("\n");
+    //printMatrix(root->mat);
+    //printf("\n");
 }
 
 // Comparison object to be used to order the heap
