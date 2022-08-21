@@ -1,122 +1,127 @@
 #include <iostream>
 #include <cstring>
+#include <string>
+#include <algorithm>
+#include <vector>
+#include <queue>
+#include <fstream>
 using namespace std;
 
-class node{
+//----------------------------------------------------class begin
+class Node{
 public:
-    int[9] grid;
-    int x = 0;
-    list<node> children = new list<node>();
-    node parent;
+    vector<Node*> children;
+    vector<int> puzzle;
+    Node *parent;
+    Node(vector<int> _puzzle, Node *_parent) {
+        puzzle = _puzzle;
+        parent = _parent;
+    }
+    //void printPuzzle();
+
+    int findZero(){
+        vector<int>::iterator it;
+        it = find(puzzle.begin(), puzzle.end(), 0);
+        auto z = distance(puzzle.begin(), it);
+        return (int) z;
+    };
+
+    void moveUp(){
+        int zPos = findZero();
+        vector<int> temp = puzzle;
+        if (zPos != 0 && zPos != 1 && zPos != 2)
+            swap(temp[zPos], temp[zPos - 3]);
+        Node* child = new Node(temp, this);
+        children.push_back(child);
+    };
+
+    void moveDown(){
+        int zPos = findZero();
+        vector<int> temp = puzzle;
+        if (zPos != 6 && zPos != 7 && zPos != 8)
+            swap(temp[zPos], temp[zPos + 3]);
+        Node* child = new Node(temp, this);
+        children.push_back(child);
+    };
+
+    void moveRight(){
+        int zPos = findZero();
+        vector<int> temp = puzzle;
+        if (zPos != 2 && zPos != 5 && zPos != 8)
+            swap(temp[zPos], temp[zPos + 1]);
+        Node* child = new Node(temp, this);
+        children.push_back(child);
+    };
+
+    void moveLeft(){
+        int zPos = findZero();
+        vector<int> temp = puzzle;
+        if (zPos != 0 && zPos != 3 && zPos != 6)
+            swap(temp[zPos], temp[zPos - 1]);
+        Node* child = new Node(temp, this);
+        children.push_back(child);
+    };
 };
 
+//-----------------------------------------------------class end
 
-
-
-string grid[3][3];
-
-void printGrid(string grid[3][3]){
-    string outputGrid;
-    for(int i=0;i<3;i++){
-        for(int j=0;j<3;j++){
-            outputGrid += grid[i][j];
-            if(j!=2){
-                outputGrid += " ";
-            }
+bool contains(queue<Node*> q, Node* n) {
+    bool exist = false;
+    while (!q.empty()) {
+        if (q.front()->puzzle == n->puzzle){
+            exist = true;
         }
-        outputGrid += "\n";
+        q.pop();
     }
-    cout << "1\n" << outputGrid;
-}
-
-string canMove(int blank){
-    string availMoves;
-    if(blank>2){
-        availMoves += "UP\n";
-    }
-    if(blank<6){
-        availMoves += "DOWN\n";
-    }
-    if(blank!=0 && blank!=3 && blank!=6){
-        availMoves += "LEFT\n";
-    }
-    if(blank!=2 && blank!=5 && blank!=8){
-        availMoves += "RIGHT";
-    }
-    return availMoves;
-}
-
-void makeMove(string inputString,  int blank){
-    if(inputString=="UP" && blank>2){
-        string temp1;
-        if(blank>5){
-            temp1 = grid[1][blank-6];
-            grid[2][blank-6] = temp1;
-            grid[1][blank-6] = "#";
-        }else{
-            temp1 = grid[0][blank-3];
-            grid[1][blank-3] = temp1;
-            grid[0][blank-3] = "#";
-        }
-    }else if(inputString=="DOWN" && blank<6){
-        string temp1;
-        if(blank<2){
-            temp1 = grid[1][blank];
-            grid[0][blank] = temp1;
-            grid[1][blank] = "#";
-        }else{
-            temp1 = grid[2][blank-3];
-            grid[1][blank-3] = temp1;
-            grid[2][blank-3] = "#";
-        }
-    }else if(inputString=="LEFT" && blank!=0 && blank!=3 && blank!=6){
-        string temp1;
-        if(blank==1 || blank==4 || blank==7){
-            temp1 = grid[(blank-1)/3][0];
-            grid[(blank-1)/3][1] = temp1;
-            grid[(blank-1)/3][0] = "#";
-        }else{
-            temp1 = grid[(blank-2)/3][1];
-            grid[(blank-2)/3][2] = temp1;
-            grid[(blank-2)/3][1] = "#";
-        }
-    }else if(inputString=="RIGHT" && blank!=2 && blank!=5 && blank!=8){
-        string temp1;
-        if(blank==1 || blank==4 || blank==7){
-            temp1 = grid[(blank-1)/3][2];
-            grid[(blank-1)/3][1] = temp1;
-            grid[(blank-1)/3][2] = "#";
-        }else{
-            temp1 = grid[(blank-2)/3][1];
-            grid[(blank-2)/3][0] = temp1;
-            grid[(blank-2)/3][1] = "#";
-        }
-    }
+  return exist;
 }
 
 int main() {
-    string inputGrid;
-    string inputString;
-    cin >> inputGrid; //>> inputString;
-    string outputString;
+    cin <<
+    vector<int> initial;
+    initial.push_back(1);
+    initial.push_back(2);
+    initial.push_back(3);
+    initial.push_back(4);
+    initial.push_back(0);
+    initial.push_back(5);
+    initial.push_back(6);
+    initial.push_back(7);
+    initial.push_back(8);
+    vector<int> goalState = { 1, 2, 3, 4, 5, 6, 7, 8, 0 };
+    Node init = Node(initial, NULL);
+    queue<Node*> openList;
+    queue<Node*> closedList;
+    openList.push(&init);
+    bool goalFound = false;
+    int count = 0;
+    vector<Node*> solution;
+    cout << "Searching for solution..." << endl;
+    while (!openList.empty() && !goalFound) {
+        Node* currentNode = openList.front();
+        closedList.push(currentNode);
+        openList.pop();
+        currentNode->moveUp();
+        currentNode->moveDown();
+        currentNode->moveRight();
+        currentNode->moveLeft();
 
-    int blank = inputGrid.find("#");
+        for (auto i : currentNode->children) {
+            Node* currentChild = i;
+            if (currentChild->puzzle == goalState) {
+                cout << "Goal Found." << endl;
+                //traceSolution(solution, currentChild);
+                goalFound = true;
 
-    string moves[4] = {"UP", "DOWN", "LEFT", "RIGHT"};
+            }
+            if (!contains(openList, currentChild)&& !contains(closedList, currentChild)) {
+                openList.push(currentChild);
+            }
 
-    int counter =0;
-
-    for(int i=0;i<3;i++){
-        for(int j=0;j<3;j++){
-            grid[i][j] = inputGrid[counter];
-            counter++;
         }
+        count++;
     }
-
-    //makeMove(inputString, blank);
-
-    printGrid(grid);
-    //cout << canMove(blank);
-    return 0;
+  cout << "No. of nodes in closed list: " << count << endl;
 }
+
 
