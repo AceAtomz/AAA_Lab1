@@ -17,7 +17,17 @@ public:
         puzzle = _puzzle;
         parent = _parent;
     }
-    //void printPuzzle();
+
+    void printPuzzle(){
+        int count = 0;
+        for (auto i : puzzle) {
+            if (count % 3 == 0){
+                cout << std::endl;
+            }
+            cout << i << ' ';
+            count++;
+        }
+    };
 
     int findZero(){
         vector<int>::iterator it;
@@ -76,19 +86,49 @@ bool contains(queue<Node*> q, Node* n) {
   return exist;
 }
 
+void traceSolution(vector<Node*> sol, Node* g) {
+    int moves=0;
+  Node* curr = g;
+  sol.push_back(g);
+  while (curr->parent != NULL) {
+    curr = curr->parent;
+    sol.push_back(curr);
+  }
+  std::reverse(sol.begin(), sol.end());
+  //cout << "printing solution" << endl;
+  for (auto i : sol) {
+        moves++;
+    //i->printPuzzle();
+    //cout << endl;
+  }
+  cout << moves-1 << endl;
+}
+
 int main() {
-    cin <<
+    string initialGrid;
+    string GoalGrid;
+    cin >> initialGrid >> GoalGrid;
+
     vector<int> initial;
-    initial.push_back(1);
-    initial.push_back(2);
-    initial.push_back(3);
-    initial.push_back(4);
-    initial.push_back(0);
-    initial.push_back(5);
-    initial.push_back(6);
-    initial.push_back(7);
-    initial.push_back(8);
-    vector<int> goalState = { 1, 2, 3, 4, 5, 6, 7, 8, 0 };
+    vector<int> goalState;
+
+    for(int i=0;i<9;i++){
+        if(initialGrid[i]=='#'){
+            initial.push_back(0);
+        }else{
+            int ia = initialGrid[i] - '0'; //convert char to int
+            initial.push_back(ia);
+        }
+        if(GoalGrid[i]=='#'){
+            goalState.push_back(0);
+        }else{
+            int ia = GoalGrid[i] - '0'; //convert char to int
+            goalState.push_back(ia);
+        }
+    }
+
+
+
     Node init = Node(initial, NULL);
     queue<Node*> openList;
     queue<Node*> closedList;
@@ -96,7 +136,7 @@ int main() {
     bool goalFound = false;
     int count = 0;
     vector<Node*> solution;
-    cout << "Searching for solution..." << endl;
+    //cout << "Searching for solution..." << endl;
     while (!openList.empty() && !goalFound) {
         Node* currentNode = openList.front();
         closedList.push(currentNode);
@@ -109,8 +149,8 @@ int main() {
         for (auto i : currentNode->children) {
             Node* currentChild = i;
             if (currentChild->puzzle == goalState) {
-                cout << "Goal Found." << endl;
-                //traceSolution(solution, currentChild);
+                //cout << "Goal Found." << endl;
+                traceSolution(solution, currentChild);
                 goalFound = true;
 
             }
@@ -121,7 +161,7 @@ int main() {
         }
         count++;
     }
-  cout << "No. of nodes in closed list: " << count << endl;
+  //cout << "No. of nodes in closed list: " << count << endl;
 }
 
 
