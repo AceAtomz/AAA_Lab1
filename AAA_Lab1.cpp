@@ -1,175 +1,201 @@
-#include <iostream>
-#include <cstring>
-#include <string>
-#include <algorithm>
-#include <vector>
-#include <queue>
-#include <fstream>
+#include <bits/stdc++.h>
 using namespace std;
+#define N 3
 
-//----------------------------------------------------class begin
-class Node{
-public:
-    vector<Node*> children;
-    vector<int> puzzle;
-    Node *parent;
-    Node(vector<int> _puzzle, Node *_parent) {
-        puzzle = _puzzle;
-        parent = _parent;
-    }
+int totalMoves = 0;
+// state space tree nodes
+struct Node
+{
+    // stores the parent node of the current node
+    // helps in tracing path when the answer is found
+    Node* parent;
 
-    void printPuzzle(){
-        int count = 0;
-        for (auto i : puzzle) {
-            if (count % 3 == 0){
-                cout << std::endl;
-            }
-            cout << i << ' ';
-            count++;
-        }
-    };
+    // stores matrix
+    int mat[N][N];
 
-    int findZero(){
-        vector<int>::iterator it;
-        it = find(puzzle.begin(), puzzle.end(), 0);
-        auto z = distance(puzzle.begin(), it);
-        return (int) z;
-    };
+    // stores blank tile coordinates
+    int x, y;
 
-    void moveUp(){
-        int zPos = findZero();
-        vector<int> temp = puzzle;
-        if (zPos != 0 && zPos != 1 && zPos != 2)
-            swap(temp[zPos], temp[zPos - 3]);
-        Node* child = new Node(temp, this);
-        children.push_back(child);
-    };
+    // stores the number of misplaced tiles
+    int cost;
 
-    void moveDown(){
-        int zPos = findZero();
-        vector<int> temp = puzzle;
-        if (zPos != 6 && zPos != 7 && zPos != 8)
-            swap(temp[zPos], temp[zPos + 3]);
-        Node* child = new Node(temp, this);
-        children.push_back(child);
-    };
-
-    void moveRight(){
-        int zPos = findZero();
-        vector<int> temp = puzzle;
-        if (zPos != 2 && zPos != 5 && zPos != 8)
-            swap(temp[zPos], temp[zPos + 1]);
-        Node* child = new Node(temp, this);
-        children.push_back(child);
-    };
-
-    void moveLeft(){
-        int zPos = findZero();
-        vector<int> temp = puzzle;
-        if (zPos != 0 && zPos != 3 && zPos != 6)
-            swap(temp[zPos], temp[zPos - 1]);
-        Node* child = new Node(temp, this);
-        children.push_back(child);
-    };
+    // stores the number of moves so far
+    int level;
 };
 
-//-----------------------------------------------------class end
-
-bool contains(queue<Node*> q, Node* n) {
-    bool exist = false;
-    while (!q.empty()) {
-        if (q.front()->puzzle == n->puzzle){
-            exist = true;
-        }
-        q.pop();
+// Function to print N x N matrix
+int printMatrix(int mat[N][N])
+{
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+            printf("%d ", mat[i][j]);
+        printf("\n");
     }
-  return exist;
 }
 
-void traceSolution(vector<Node*> sol, Node* g) {
-    int moves=0;
-  Node* curr = g;
-  sol.push_back(g);
-  while (curr->parent != NULL) {
-    curr = curr->parent;
-    sol.push_back(curr);
-  }
-  std::reverse(sol.begin(), sol.end());
-  //cout << "printing solution" << endl;
-  for (auto i : sol) {
-        moves++;
-    //i->printPuzzle();
-    //cout << endl;
-  }
-  cout << moves-1 << endl;
+// Function to allocate a new node
+Node* newNode(int mat[N][N], int x, int y, int newX,
+              int newY, int level, Node* parent)
+{
+    Node* node = new Node;
+
+    // set pointer for path to root
+    node->parent = parent;
+
+    // copy data from parent node to current node
+    memcpy(node->mat, mat, sizeof node->mat);
+
+    // move tile by 1 position
+    swap(node->mat[x][y], node->mat[newX][newY]);
+
+    // set number of misplaced tiles
+    node->cost = INT_MAX;
+
+    // set number of moves so far
+    node->level = level;
+
+    // update new blank tile coordinates
+    node->x = newX;
+    node->y = newY;
+
+    return node;
 }
 
+// bottom, left, top, right
+int row[] = { 1, 0, -1, 0 };
+int col[] = { 0, -1, 0, 1 };
+
+// Function to calculate the number of misplaced tiles
+// ie. number of non-blank tiles not in their goal position
+int calculateCost(int initial[N][N], int final[N][N])
+{
+    int count = 0;
+    for (int i = 0; i < N; i++)
+      for (int j = 0; j < N; j++)
+        if (initial[i][j] && initial[i][j] != final[i][j])
+           count++;
+    return count;
+}
+
+// Function to check if (x, y) is a valid matrix coordinate
+int isSafe(int x, int y)
+{
+    return (x >= 0 && x < N && y >= 0 && y < N);
+}
+
+// print path from root node to destination node
+void printPath(Node* root)
+{
+    if (root == NULL)
+        return;
+    printPath(root->parent);
+    printMatrix(root->mat);
+
+    printf("\n");
+    totalMoves++;
+}
+
+// Comparison object to be used to order the heap
+struct comp
+{
+    bool operator()(const Node* lhs, const Node* rhs) const
+    {
+        return (lhs->cost + lhs->level) > (rhs->cost + rhs->level);
+    }
+};
+
+// Function to solve N*N - 1 puzzle algorithm using
+// Branch and Bound. x and y are blank tile coordinates
+// in initial state
+void solve(int initial[N][N], int x, int y,
+           int final[N][N])
+{
+    // Create a priority queue to store live nodes of
+    // search tree;
+    priority_queue<Node*, std::vector<Node*>, comp> pq;
+
+    // create a root node and calculate its cost
+    Node* root = newNode(initial, x, y, x, y, 0, NULL);
+    root->cost = calculateCost(initial, final);
+
+    // Add root to list of live nodes;
+    pq.push(root);
+
+    // Finds a live node with least cost,
+    // add its childrens to list of live nodes and
+    // finally deletes it from the list.
+    while (!pq.empty())
+    {
+        // Find a live node with least estimated cost
+        Node* min = pq.top();
+
+        // The found node is deleted from the list of
+        // live nodes
+        pq.pop();
+
+        // if min is an answer node
+        if (min->cost == 0)
+        {
+            // print the path from root to destination;
+            printPath(min);
+            return;
+        }
+
+        // do for each child of min
+        // max 4 children for a node
+        for (int i = 0; i < 4; i++)
+        {
+            if (isSafe(min->x + row[i], min->y + col[i]))
+            {
+                // create a child node and calculate
+                // its cost
+                Node* child = newNode(min->mat, min->x,
+                              min->y, min->x + row[i],
+                              min->y + col[i],
+                              min->level + 1, min);
+                child->cost = calculateCost(child->mat, final);
+
+                // Add child to list of live nodes
+                pq.push(child);
+            }
+        }
+    }
+}
 int main() {
     string initialGrid;
     string GoalGrid;
     cin >> initialGrid >> GoalGrid;
 
-    if(initialGrid=="78651#432" && GoalGrid=="12345678#"){
-        cout << 25 << endl;
-        return 0;
-    }
-    if(initialGrid=="1857#3462" && GoalGrid=="78651432#"){
-        cout << 20 << endl;
-        return 0;
-    }
+    int initial[N][N];
+    int goal[N][N];
+    int tempCount=0;
+    int x = 0, y = 0;
 
-    vector<int> initial;
-    vector<int> goalState;
-
-    for(int i=0;i<9;i++){
-        if(initialGrid[i]=='#'){
-            initial.push_back(0);
-        }else{
-            int ia = initialGrid[i] - '0'; //convert char to int
-            initial.push_back(ia);
-        }
-        if(GoalGrid[i]=='#'){
-            goalState.push_back(0);
-        }else{
-            int ia = GoalGrid[i] - '0'; //convert char to int
-            goalState.push_back(ia);
-        }
-    }
-
-
-
-    Node init = Node(initial, NULL);
-    queue<Node*> openList;
-    queue<Node*> closedList;
-    openList.push(&init);
-    bool goalFound = false;
-    int count = 0;
-    vector<Node*> solution;
-    //cout << "Searching for solution..." << endl;
-    while (!openList.empty() && !goalFound) {
-        Node* currentNode = openList.front();
-        closedList.push(currentNode);
-        openList.pop();
-        currentNode->moveUp();
-        currentNode->moveDown();
-        currentNode->moveRight();
-        currentNode->moveLeft();
-
-        for (auto i : currentNode->children) {
-            Node* currentChild = i;
-            if (currentChild->puzzle == goalState) {
-                //cout << "Goal Found." << endl;
-                traceSolution(solution, currentChild);
-                goalFound = true;
-
+    for(int i=0;i<3;i++){
+        for(int j=0;j<3;j++){
+            if(initialGrid[tempCount]=='#'){
+                initial[i][j] = 0;
+                x = i;
+                y = j;
+                cout << x << " " << y << endl;
+            }else{
+                int ia = initialGrid[tempCount] - '0'; //convert char to int
+                initial[i][j] = ia;
             }
-            if (!contains(openList, currentChild)&& !contains(closedList, currentChild)) {
-                openList.push(currentChild);
+            if(GoalGrid[tempCount]=='#'){
+                goal[i][j] = 0;
+            }else{
+                int ia = GoalGrid[tempCount] - '0'; //convert char to int
+                goal[i][j] = ia;
             }
+            tempCount++;
         }
-        count++;
     }
-  //cout << "No. of nodes in closed list: " << count << endl;
+
+    solve(initial, x, y, goal);
+    cout << totalMoves -1 << endl;
+    return 0;
 }
 
 
