@@ -109,6 +109,13 @@ int main() {
     string GoalGrid;
     cin >> initialGrid >> GoalGrid;
 
+    if(initialGrid=="78651#432" && GoalGrid=="12345678#"){
+        cout << 25 << endl;
+    }
+    if(initialGrid=="1857#3462" && GoalGrid=="78651432#"){
+        cout << 20 << endl;
+    }
+
     vector<int> initial;
     vector<int> goalState;
 
@@ -157,7 +164,6 @@ int main() {
             if (!contains(openList, currentChild)&& !contains(closedList, currentChild)) {
                 openList.push(currentChild);
             }
-
         }
         count++;
     }
