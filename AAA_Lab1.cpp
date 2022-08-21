@@ -2,6 +2,17 @@
 #include <cstring>
 using namespace std;
 
+class node{
+public:
+    int[9] grid;
+    int x = 0;
+    list<node> children = new list<node>();
+    node parent;
+};
+
+
+
+
 string grid[3][3];
 
 void printGrid(string grid[3][3]){
@@ -16,6 +27,23 @@ void printGrid(string grid[3][3]){
         outputGrid += "\n";
     }
     cout << "1\n" << outputGrid;
+}
+
+string canMove(int blank){
+    string availMoves;
+    if(blank>2){
+        availMoves += "UP\n";
+    }
+    if(blank<6){
+        availMoves += "DOWN\n";
+    }
+    if(blank!=0 && blank!=3 && blank!=6){
+        availMoves += "LEFT\n";
+    }
+    if(blank!=2 && blank!=5 && blank!=8){
+        availMoves += "RIGHT";
+    }
+    return availMoves;
 }
 
 void makeMove(string inputString,  int blank){
@@ -69,7 +97,7 @@ void makeMove(string inputString,  int blank){
 int main() {
     string inputGrid;
     string inputString;
-    cin >> inputGrid >> inputString;
+    cin >> inputGrid; //>> inputString;
     string outputString;
 
     int blank = inputGrid.find("#");
@@ -85,9 +113,10 @@ int main() {
         }
     }
 
-    makeMove(inputString, blank);
+    //makeMove(inputString, blank);
 
     printGrid(grid);
+    //cout << canMove(blank);
     return 0;
 }
 
